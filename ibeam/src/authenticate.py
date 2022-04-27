@@ -18,6 +18,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support.ui import Select
 
 import ibeam
 from ibeam.src import var
@@ -196,9 +197,10 @@ def authenticate_gateway(driver_path,
             two_factor_input_present = EC.visibility_of_element_located((By.ID, var.TWO_FA_EL_ID))
             error_displayed = EC.visibility_of_element_located((By.ID, var.ERROR_EL_ID))
             ibkey_promo_skip_clickable = EC.element_to_be_clickable((By.CLASS_NAME, var.IBKEY_PROMO_EL_CLASS))
+            sf_select_clickable = EC.element_to_be_clickable((By.ID, var.IBEAM_TWO_FA_EL_SELECT))
 
             trigger = WebDriverWait(driver, var.OAUTH_TIMEOUT).until(
-                any_of(success_present, two_factor_input_present, error_displayed, ibkey_promo_skip_clickable))
+                any_of(success_present, two_factor_input_present, error_displayed, ibkey_promo_skip_clickable, sf_select_clickable))
 
             trigger_id = trigger.get_attribute('id')
 
@@ -229,7 +231,18 @@ def authenticate_gateway(driver_path,
                     trigger = WebDriverWait(driver, var.OAUTH_TIMEOUT).until(
                         any_of(success_present, ibkey_promo_skip_clickable, error_displayed))
                     trigger_id = trigger.get_attribute('id')
-            
+            elif trigger_id == var.IBEAM_TWO_FA_EL_SELECT:
+                _LOGGER.info('The two factor select is visible')
+                select = Select(driver.find_element_by_id(trigger_id))
+
+                # select by value 
+                select.select_by_value('5.2i')
+                _LOGGER.info('Selected IB Key')
+
+                trigger = WebDriverWait(driver, var.OAUTH_TIMEOUT).until(
+                    any_of(success_present, ibkey_promo_skip_clickable, error_displayed))
+                trigger_id = trigger.get_attribute('id')
+
             trigger_class = trigger.get_attribute('class')
 
             if trigger_class == var.IBKEY_PROMO_EL_CLASS:
@@ -269,6 +282,7 @@ def authenticate_gateway(driver_path,
         exception_line = traceback.format_tb(sys.exc_info()[2])[0].replace('\n', '')
         _LOGGER.error(
             f'Timeout reached when waiting for authentication. Consider increasing IBEAM_PAGE_LOAD_TIMEOUT. Error: "{e.msg}" at {exception_line}')
+        _LOGGER.info(driver.page_source)
         save_screenshot(driver, '__timeout-exception')
         success = False
     except Exception as e:
