@@ -282,7 +282,6 @@ def authenticate_gateway(driver_path,
         exception_line = traceback.format_tb(sys.exc_info()[2])[0].replace('\n', '')
         _LOGGER.error(
             f'Timeout reached when waiting for authentication. Consider increasing IBEAM_PAGE_LOAD_TIMEOUT. Error: "{e.msg}" at {exception_line}')
-        _LOGGER.info(driver.page_source)
         save_screenshot(driver, '__timeout-exception')
         success = False
     except Exception as e:
