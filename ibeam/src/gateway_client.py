@@ -119,13 +119,25 @@ class GatewayClient():
     # def _reauthenticate(self):
     #     self._try_request(self.base_url + _ROUTE_REAUTHENTICATE, False)
 
+    def report_results(self, authenticated, shutdown) -> (bool, bool):
+        authString = str(authenticated).lower()
+        shutdownString = str(shutdown).lower()
+
+        _LOGGER.info(f'report results {var.IBEAM_RESULT_FILE} {authenticated} {shutdown}')
+
+        f = open(var.IBEAM_RESULT_FILE, "w")
+        f.write(f'{{ "Authenticated":{authString}, "ShutDown":{shutdownString} }}')
+        f.close()
+
+        return authenticated, shutdown
+
     def try_authenticating(self, request_retries=1) -> (bool, bool):
         status = self.get_status(max_attempts=request_retries)
         if status.authenticated and not status.competing:  # running, authenticated and not competing
-            return True, False
+            return self.report_results(True, False)
         elif not status.running:  # no gateway running
             _LOGGER.error('Cannot communicate with the Gateway. Consider increasing IBEAM_GATEWAY_STARTUP')
-            return False, False
+            return self.report_results(False, False)
         else:
             if status.session:
                 if status.competing:
@@ -140,9 +152,9 @@ class GatewayClient():
             success, shutdown = self._authenticate()
             _LOGGER.info(f'Authentication process {"succeeded" if success else "failed"}')
             if shutdown:
-                return False, True
+                return self.report_results(False, True)
             if not success:
-                return False, False
+                return self.report_results(False, False)
             # self._try_request(self.base_url + _ROUTE_VALIDATE, False, max_attempts=REQUEST_RETRIES)
 
             time.sleep(3)  # buffer for session to be authenticated
@@ -160,14 +172,14 @@ class GatewayClient():
                     _LOGGER.error('Gateway running but has no active sessions')
                 else:
                     _LOGGER.error('Cannot communicate with the Gateway')
-                return False, False
+                return self.report_results(False, False)
             elif status.competing:
                 _LOGGER.info('Authenticated but competing Gateway session found, reauthenticating...')
                 self.reauthenticate()
                 time.sleep(var.RESTART_WAIT)
-                return False, False
+                return self.report_results(False, False)
 
-        return True, False
+        return self.report_results(True, False)
 
     def get_status(self, max_attempts=1) -> Status:
         return self.http_handler.try_request(self.base_url + var.ROUTE_TICKLE, True, max_attempts=max_attempts)
