@@ -107,7 +107,7 @@ MAX_IMMEDIATE_ATTEMPTS = int(os.environ.get('IBEAM_MAX_IMMEDIATE_ATTEMPTS', 10))
 
 IBEAM_TWO_FA_EL_SELECT = os.environ.get('IBEAM_TWO_FA_EL_SELECT', 'sf_select')
 
-IBEAM_RESULT_FILE = os.environ.get('IBEAM_RESULT_FILE', os.path.abspath(
+IBEAM_RESULT_PATH = os.environ.get('IBEAM_RESULT_PATH', os.path.abspath(
                                  os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', '..', 'results', 'results.json')))
 
 IBKEY_PROMO_EL_CLASS = os.environ.get('IBEAM_IBKEY_PROMO_EL_CLASS', 'ibkey-promo-skip')

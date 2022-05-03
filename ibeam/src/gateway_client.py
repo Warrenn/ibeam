@@ -123,9 +123,9 @@ class GatewayClient():
         authString = str(authenticated).lower()
         shutdownString = str(shutdown).lower()
 
-        _LOGGER.info(f'report results {var.IBEAM_RESULT_FILE} {authenticated} {shutdown}')
+        _LOGGER.info(f'report results {var.IBEAM_RESULT_PATH} {authenticated} {shutdown}')
 
-        f = open(var.IBEAM_RESULT_FILE, "w")
+        f = open(var.IBEAM_RESULT_PATH, "w")
         f.write(f'{{ "Authenticated":{authString}, "ShutDown":{shutdownString} }}')
         f.close()
 
